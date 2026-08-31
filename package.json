@@ -1,0 +1,44 @@
+{
+  "name": "pdf-tools",
+  "productName": "PDF Tools",
+  "version": "1.0.0",
+  "description": "PDF tools: duplex combine, compress, arrange pages, images to PDF, and merge PDFs (Ghostscript)",
+  "main": "main.js",
+  "scripts": {
+    "start": "env -u ELECTRON_RUN_AS_NODE electron .",
+    "dev": "env -u ELECTRON_RUN_AS_NODE electron . --enable-logging",
+    "pack": "electron-builder --mac dir",
+    "dist": "electron-builder --mac dmg"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.pdftools.app",
+    "productName": "PDF Tools",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "lib/**/*",
+      "renderer/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg"
+      ],
+      "identity": null,
+      "extendInfo": {
+        "CFBundleName": "PDF Tools",
+        "CFBundleDisplayName": "PDF Tools"
+      }
+    },
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
+  }
+}
