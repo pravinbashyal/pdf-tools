@@ -28,6 +28,7 @@
       "lib/**/*",
       "renderer/**/*"
     ],
+    "afterSign": "scripts/afterSign.js",
     "mac": {
       "icon": "build/icon.png",
       "category": "public.app-category.utilities",
