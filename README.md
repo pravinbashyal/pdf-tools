@@ -33,7 +33,7 @@ npm run dev
 
 ## Package / install (macOS)
 
-Build a `.app` bundle (unsigned; first open may need right-click → Open):
+Build a `.app` bundle (unsigned; first open may need a Gatekeeper override — see "Unsigned build" below):
 
 ```bash
 npm install
@@ -44,7 +44,7 @@ The app lands in `dist/mac-arm64/PDF Tools.app` (or `dist/mac/` on Intel). Copy 
 
 ### Unsigned build
 
-Tagged releases (see [Releases](https://github.com/pravinbashyal/pdf-tools/releases)) publish a `.dmg` built by CI. This build is **not code-signed or notarized** (no Apple Developer account). If you download the `.dmg` directly and macOS Gatekeeper reports the app is "damaged" or refuses to open it, right-click (or Control-click) **PDF Tools.app** and choose **Open** on first launch, then confirm in the dialog that appears — this is only required once.
+Tagged releases (see [Releases](https://github.com/pravinbashyal/pdf-tools/releases)) publish a `.dmg` built by CI. This build is **not code-signed or notarized** (no Apple Developer account). If you download the `.dmg` directly and macOS Gatekeeper reports the app is "damaged" or refuses to open it: on macOS 15 (Sequoia) and later, open **System Settings → Privacy & Security**, scroll down to the notice about the blocked app, click **Open Anyway**, and confirm — this is only required once. On older macOS versions, right-click (or Control-click) **PDF Tools.app** and choose **Open** instead. If neither shows an override option (the "move to Trash" variant of the warning), run `xattr -dr com.apple.quarantine "/Applications/PDF Tools.app"` in Terminal instead.
 
 ## Usage
 
