@@ -54,3 +54,66 @@ jobs:
             If you download the `.dmg` directly (i.e. not via Homebrew), macOS Gatekeeper will likely refuse to open it with a "damaged" or "unidentified developer" warning. On macOS 15 (Sequoia) and later, open **System Settings → Privacy & Security**, scroll down to the notice about the blocked app, and click **Open Anyway** (confirm once). On older macOS versions, right-click (or Control-click) the app in `/Applications` and choose **Open** instead.
 
             If neither shows an override option (the "move to Trash" variant of the warning), run `xattr -dr com.apple.quarantine "/Applications/PDF Tools.app"` in Terminal instead.
+
+      # Auto-update the Homebrew Cask in the pravinbashyal/homebrew-pdf-tools tap
+      # so `brew upgrade --cask pdf-tools` picks up this release without manual
+      # editing. Requires a `HOMEBREW_TAP_TOKEN` repo secret: a token with write
+      # access to homebrew-pdf-tools (a fine-grained PAT scoped to just that repo,
+      # with Contents: Read and write, is recommended over a classic PAT). Set it
+      # at https://github.com/pravinbashyal/pdf-tools/settings/secrets/actions.
+      - name: Checkout homebrew-pdf-tools tap
+        uses: actions/checkout@v4
+        with:
+          repository: pravinbashyal/homebrew-pdf-tools
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-pdf-tools
+
+      - name: Update Homebrew Cask formula
+        run: |
+          set -euo pipefail
+
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARM_DMG="$(ls dist/*-arm64.dmg)"
+          X64_DMG="$(ls dist/*-x64.dmg)"
+          ARM_SHA="$(shasum -a 256 "$ARM_DMG" | awk '{print $1}')"
+          X64_SHA="$(shasum -a 256 "$X64_DMG" | awk '{print $1}')"
+
+          python3 - "$VERSION" "$ARM_SHA" "$X64_SHA" homebrew-pdf-tools/Casks/pdf-tools.rb <<'PYEOF'
+          import re
+          import sys
+
+          version, arm_sha, x64_sha, path = sys.argv[1:5]
+
+          with open(path) as f:
+              content = f.read()
+
+          content, n = re.subn(r'version "[^"]*"', f'version "{version}"', content, count=1)
+          if n != 1:
+              raise SystemExit(f"expected exactly 1 replacement for version, got {n}")
+
+          def replace_block_sha(content, block_name, new_sha):
+              pattern = re.compile(
+                  r'(on_' + block_name + r' do\n\s*sha256 ")[a-f0-9]{64}(")'
+              )
+              new_content, count = pattern.subn(r'\g<1>' + new_sha + r'\g<2>', content)
+              if count != 1:
+                  raise SystemExit(f"expected exactly 1 replacement for on_{block_name} sha256, got {count}")
+              return new_content
+
+          content = replace_block_sha(content, "arm", arm_sha)
+          content = replace_block_sha(content, "intel", x64_sha)
+
+          with open(path, "w") as f:
+              f.write(content)
+          PYEOF
+
+          cd homebrew-pdf-tools
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/pdf-tools.rb
+          if git diff --cached --quiet; then
+            echo "No changes to Cask formula; skipping commit."
+          else
+            git commit -m "Update pdf-tools to v${VERSION}"
+            git push origin main
+          fi
