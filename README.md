@@ -40,7 +40,7 @@ brew tap pravinbashyal/pdf-tools
 brew install --cask pdf-tools
 ```
 
-This installs `PDF Tools.app` into `/Applications`. As with the direct `.dmg` download, the build is unsigned and non-notarized — see [pravinbashyal/homebrew-pdf-tools](https://github.com/pravinbashyal/homebrew-pdf-tools) for details.
+This installs `PDF Tools.app` into `/Applications`. As with the direct `.dmg` download, the build is unsigned and non-notarized — Homebrew will quarantine it like any downloaded app, so first launch will likely need a Gatekeeper override (see "[Unsigned build](#unsigned-build)" below). See [pravinbashyal/homebrew-pdf-tools](https://github.com/pravinbashyal/homebrew-pdf-tools) for tap details.
 
 To upgrade or remove:
 
