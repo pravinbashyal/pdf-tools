@@ -31,6 +31,26 @@ For slightly more verbose Electron logging:
 npm run dev
 ```
 
+## Install via Homebrew (macOS)
+
+PDF Tools is distributed via a personal (non-official) Homebrew tap that tracks this project's [GitHub Releases](https://github.com/pravinbashyal/pdf-tools/releases). Ghostscript is installed automatically as a dependency.
+
+```bash
+brew tap pravinbashyal/pdf-tools
+brew install --cask pdf-tools
+```
+
+This installs `PDF Tools.app` into `/Applications`. As with the direct `.dmg` download, the build is unsigned and non-notarized — see [pravinbashyal/homebrew-pdf-tools](https://github.com/pravinbashyal/homebrew-pdf-tools) for details.
+
+To upgrade or remove:
+
+```bash
+brew upgrade --cask pdf-tools
+# or
+brew uninstall --cask pdf-tools
+brew untap pravinbashyal/pdf-tools
+```
+
 ## Package / install (macOS)
 
 Build a `.app` bundle (unsigned; first open may need a Gatekeeper override — see "Unsigned build" below):
