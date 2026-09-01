@@ -27,6 +27,8 @@ const { execFileSync } = require('child_process');
  * signing identity or certificate is used or required.
  */
 exports.default = async function afterSign(context) {
+  if (context.electronPlatformName !== 'darwin') return;
+
   const { appOutDir, packager } = context;
   const appName = packager.appInfo.productFilename;
   const appPath = path.join(appOutDir, `${appName}.app`);

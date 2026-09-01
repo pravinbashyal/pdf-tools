@@ -38,6 +38,11 @@ jobs:
       - name: Build dmg (x64)
         run: npx electron-builder --mac dmg --x64 --publish never
 
+      - name: Verify app signatures are intact
+        run: |
+          codesign --verify --deep --strict "dist/mac-arm64/PDF Tools.app"
+          codesign --verify --deep --strict "dist/mac/PDF Tools.app"
+
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
