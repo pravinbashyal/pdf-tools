@@ -33,10 +33,10 @@ jobs:
         run: npm ci
 
       - name: Build dmg (arm64)
-        run: npx electron-builder --mac dmg --arm64
+        run: npx electron-builder --mac dmg --arm64 --publish never
 
       - name: Build dmg (x64)
-        run: npx electron-builder --mac dmg --x64
+        run: npx electron-builder --mac dmg --x64 --publish never
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
