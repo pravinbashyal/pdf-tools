@@ -510,6 +510,10 @@ input[readonly] {
   background: color-mix(in srgb, var(--danger) 8%, #fffdf8);
 }
 
+#showInFinderBtn {
+  margin-top: 10px;
+}
+
 @media (min-width: 560px) {
   .feature-list {
     grid-template-columns: 1fr 1fr;

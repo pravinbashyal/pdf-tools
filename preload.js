@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld("duplexApi", {
   mergePdfs: (options) => ipcRenderer.invoke("merge:run", options),
   inspectPdf: (pdfPath) => ipcRenderer.invoke("arrange:inspect", pdfPath),
   arrangePages: (options) => ipcRenderer.invoke("arrange:run", options),
+  showItemInFolder: (filePath) => ipcRenderer.invoke("shell:showItem", filePath),
+  suggestOutputName: (options) => ipcRenderer.invoke("output:suggestName", options),
   onProgress: (callback) => {
     const handler = (_event, message) => callback(message);
     ipcRenderer.on("job:progress", handler);

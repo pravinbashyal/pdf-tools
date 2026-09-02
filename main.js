@@ -1,10 +1,11 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
 const path = require("path");
 const { combineDuplex, findGhostscript } = require("./lib/combine");
 const { compressPdf } = require("./lib/compress");
 const { imagesToPdf } = require("./lib/imagesToPdf");
 const { mergePdfs } = require("./lib/mergePdfs");
 const { inspectPdf, arrangePages } = require("./lib/arrangePages");
+const { suggestOutputName } = require("./lib/suggestOutputName");
 
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
@@ -100,6 +101,14 @@ ipcMain.handle("dialog:openImages", async () => {
     return null;
   }
   return result.filePaths;
+});
+
+ipcMain.handle("shell:showItem", (_event, filePath) => {
+  shell.showItemInFolder(filePath);
+});
+
+ipcMain.handle("output:suggestName", (_event, options) => {
+  return suggestOutputName(options.folder, options.baseName);
 });
 
 ipcMain.handle("dialog:openFolder", async () => {

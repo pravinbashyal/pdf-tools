@@ -1,10 +1,14 @@
 const statusEl = document.getElementById("status");
 const gsBanner = document.getElementById("gsBanner");
 const gsBannerText = document.getElementById("gsBannerText");
+const showInFinderBtn = document.getElementById("showInFinderBtn");
 
 let gsOk = false;
 let busy = false;
 let mode = "home";
+
+/** @type {string} path of the most recently successfully created output file, "" if none yet */
+let lastOutputPath = "";
 
 /** @type {string} */
 let oddFile = "";
@@ -65,6 +69,68 @@ function basename(filePath) {
   const parts = filePath.split(/[/\\]/);
   return parts[parts.length - 1] || filePath;
 }
+
+function dirname(filePath) {
+  const trimmed =
+    filePath.endsWith("/") || filePath.endsWith("\\") ? filePath.slice(0, -1) : filePath;
+  const idx = Math.max(trimmed.lastIndexOf("/"), trimmed.lastIndexOf("\\"));
+  if (idx === -1) return "";
+  if (idx === 0) return trimmed.slice(0, 1);
+  return trimmed.slice(0, idx);
+}
+
+/**
+ * Prefills an output folder + filename pair from a just-picked input file,
+ * but only while each field is still blank. The filename is deduplicated
+ * against the resolved output folder's contents via `suggestOutputName`.
+ *
+ * @param {string} file - the picked input file whose folder is the candidate default
+ * @param {{ outDirId: string, outNameId: string, defaultBaseName: string, applyFolder: (dir: string) => void }} opts
+ */
+async function prefillOutputDefaults(file, { outDirId, outNameId, defaultBaseName, applyFolder }) {
+  const outDirEl = document.getElementById(outDirId);
+  const outNameEl = document.getElementById(outNameId);
+
+  if (!outDirEl.value.trim()) {
+    const dir = dirname(file);
+    outDirEl.value = dir;
+    applyFolder(dir);
+  }
+
+  if (!outNameEl.value.trim()) {
+    const targetFolder = outDirEl.value.trim();
+    let suggested = defaultBaseName;
+    try {
+      suggested = await window.duplexApi.suggestOutputName({
+        folder: targetFolder,
+        baseName: defaultBaseName,
+      });
+    } catch {
+      // If the dedup lookup fails for any reason, fall back to the plain default name.
+    }
+    // Re-check: the user may have typed a filename while the IPC call was in flight.
+    if (!outNameEl.value.trim()) {
+      outNameEl.value = suggested;
+    }
+  }
+}
+
+/**
+ * Records the most recent successful output and reveals the shared
+ * "Show in Finder" button, replacing whichever earlier output it pointed to.
+ *
+ * @param {string} outputPath
+ */
+function revealOutput(outputPath) {
+  lastOutputPath = outputPath;
+  showInFinderBtn.hidden = false;
+  showInFinderBtn.disabled = false;
+}
+
+showInFinderBtn.addEventListener("click", () => {
+  if (!lastOutputPath) return;
+  window.duplexApi.showItemInFolder(lastOutputPath);
+});
 
 function setBusy(next) {
   busy = next;
@@ -287,6 +353,14 @@ document.getElementById("oddPick").addEventListener("click", async () => {
   if (!file) return;
   oddFile = file;
   document.getElementById("oddPath").value = file;
+  await prefillOutputDefaults(file, {
+    outDirId: "duplexOutDir",
+    outNameId: "duplexOutName",
+    defaultBaseName: "combined.pdf",
+    applyFolder: (dir) => {
+      duplexFolder = dir;
+    },
+  });
   updateActionButtons();
 });
 
@@ -295,6 +369,14 @@ document.getElementById("evenPick").addEventListener("click", async () => {
   if (!file) return;
   evenFile = file;
   document.getElementById("evenPath").value = file;
+  await prefillOutputDefaults(file, {
+    outDirId: "duplexOutDir",
+    outNameId: "duplexOutName",
+    defaultBaseName: "combined.pdf",
+    applyFolder: (dir) => {
+      duplexFolder = dir;
+    },
+  });
   updateActionButtons();
 });
 
@@ -335,6 +417,16 @@ document.getElementById("form-duplex").addEventListener("submit", async (event) 
         `Success: ${result.totalPages} pages written to ${result.outputPdf}`,
         "ok"
       );
+      revealOutput(result.outputPdf);
+      document.getElementById("duplexOutName").value = "";
+      await prefillOutputDefaults(oddFile, {
+        outDirId: "duplexOutDir",
+        outNameId: "duplexOutName",
+        defaultBaseName: "combined.pdf",
+        applyFolder: (dir) => {
+          duplexFolder = dir;
+        },
+      });
     } else {
       setStatus(result.error || "Combine failed.", "error");
     }
@@ -352,10 +444,14 @@ document.getElementById("compressPick").addEventListener("click", async () => {
   compressFile = file;
   document.getElementById("compressPath").value = file;
   const base = basename(file).replace(/\.pdf$/i, "");
-  const out = document.getElementById("compressOutName");
-  if (!out.value.trim()) {
-    out.value = `${base}-compressed.pdf`;
-  }
+  await prefillOutputDefaults(file, {
+    outDirId: "compressOutDir",
+    outNameId: "compressOutName",
+    defaultBaseName: `${base}-compressed.pdf`,
+    applyFolder: (dir) => {
+      compressFolder = dir;
+    },
+  });
   updateActionButtons();
 });
 
@@ -397,6 +493,17 @@ document.getElementById("form-compress").addEventListener("submit", async (event
         `Success: ${inMb} MB → ${outMb} MB (${result.quality}) · ${result.outputPdf}`,
         "ok"
       );
+      revealOutput(result.outputPdf);
+      document.getElementById("compressOutName").value = "";
+      const base = basename(compressFile).replace(/\.pdf$/i, "");
+      await prefillOutputDefaults(compressFile, {
+        outDirId: "compressOutDir",
+        outNameId: "compressOutName",
+        defaultBaseName: `${base}-compressed.pdf`,
+        applyFolder: (dir) => {
+          compressFolder = dir;
+        },
+      });
     } else {
       setStatus(result.error || "Compress failed.", "error");
     }
@@ -432,6 +539,14 @@ document.getElementById("imagesPick").addEventListener("click", async () => {
   if (!files || files.length === 0) return;
   imageFiles = imageFiles.concat(files);
   renderImagesList();
+  await prefillOutputDefaults(files[0], {
+    outDirId: "imagesOutDir",
+    outNameId: "imagesOutName",
+    defaultBaseName: "images.pdf",
+    applyFolder: (dir) => {
+      imagesFolder = dir;
+    },
+  });
   updateActionButtons();
 });
 
@@ -476,6 +591,16 @@ document.getElementById("form-images").addEventListener("submit", async (event) 
         `Success: ${result.pageCount} page${result.pageCount === 1 ? "" : "s"} → ${result.outputPdf}`,
         "ok"
       );
+      revealOutput(result.outputPdf);
+      document.getElementById("imagesOutName").value = "";
+      await prefillOutputDefaults(imageFiles[0], {
+        outDirId: "imagesOutDir",
+        outNameId: "imagesOutName",
+        defaultBaseName: "images.pdf",
+        applyFolder: (dir) => {
+          imagesFolder = dir;
+        },
+      });
     } else {
       setStatus(result.error || "Images to PDF failed.", "error");
     }
@@ -511,6 +636,14 @@ document.getElementById("mergePick").addEventListener("click", async () => {
   if (!files || files.length === 0) return;
   mergeFiles = mergeFiles.concat(files);
   renderMergeList();
+  await prefillOutputDefaults(files[0], {
+    outDirId: "mergeOutDir",
+    outNameId: "mergeOutName",
+    defaultBaseName: "merged.pdf",
+    applyFolder: (dir) => {
+      mergeFolder = dir;
+    },
+  });
   updateActionButtons();
 });
 
@@ -555,6 +688,16 @@ document.getElementById("form-merge").addEventListener("submit", async (event) =
         `Success: combined ${result.fileCount} PDFs → ${result.outputPdf}`,
         "ok"
       );
+      revealOutput(result.outputPdf);
+      document.getElementById("mergeOutName").value = "";
+      await prefillOutputDefaults(mergeFiles[0], {
+        outDirId: "mergeOutDir",
+        outNameId: "mergeOutName",
+        defaultBaseName: "merged.pdf",
+        applyFolder: (dir) => {
+          mergeFolder = dir;
+        },
+      });
     } else {
       setStatus(result.error || "Merge failed.", "error");
     }
@@ -585,10 +728,14 @@ document.getElementById("arrangePick").addEventListener("click", async () => {
     arrangePages = Array.from({ length: result.pageCount }, (_, i) => i + 1);
 
     const base = basename(file).replace(/\.pdf$/i, "");
-    const out = document.getElementById("arrangeOutName");
-    if (!out.value.trim()) {
-      out.value = `${base}-arranged.pdf`;
-    }
+    await prefillOutputDefaults(file, {
+      outDirId: "arrangeOutDir",
+      outNameId: "arrangeOutName",
+      defaultBaseName: `${base}-arranged.pdf`,
+      applyFolder: (dir) => {
+        arrangeFolder = dir;
+      },
+    });
 
     renderArrangeList();
     setStatus(`Loaded ${result.pageCount} page${result.pageCount === 1 ? "" : "s"}.`, "ok");
@@ -635,6 +782,17 @@ document.getElementById("form-arrange").addEventListener("submit", async (event)
         `Success: ${result.pageCount} page${result.pageCount === 1 ? "" : "s"} → ${result.outputPdf}`,
         "ok"
       );
+      revealOutput(result.outputPdf);
+      document.getElementById("arrangeOutName").value = "";
+      const base = basename(arrangeFile).replace(/\.pdf$/i, "");
+      await prefillOutputDefaults(arrangeFile, {
+        outDirId: "arrangeOutDir",
+        outNameId: "arrangeOutName",
+        defaultBaseName: `${base}-arranged.pdf`,
+        applyFolder: (dir) => {
+          arrangeFolder = dir;
+        },
+      });
     } else {
       setStatus(result.error || "Arrange failed.", "error");
     }
