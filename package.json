@@ -1,7 +1,7 @@
 {
   "name": "pdf-tools",
   "productName": "PDF Tools",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "PDF tools: duplex combine, compress, arrange pages, images to PDF, and merge PDFs (Ghostscript)",
   "main": "main.js",
   "scripts": {
