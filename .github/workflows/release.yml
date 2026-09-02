@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build/release (e.g. v1.1.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -12,8 +18,19 @@ jobs:
   release:
     runs-on: macos-latest
     steps:
+      - name: Resolve tag
+        id: resolve_tag
+        run: |
+          TAG="${{ github.event.inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ steps.resolve_tag.outputs.tag }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -22,7 +39,8 @@ jobs:
 
       - name: Verify tag matches package.json version
         run: |
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TAG_VERSION="${{ steps.resolve_tag.outputs.tag }}"
+          TAG_VERSION="${TAG_VERSION#v}"
           PKG_VERSION="$(node -p "require('./package.json').version")"
           if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
             echo "Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
@@ -72,7 +90,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${{ steps.resolve_tag.outputs.tag }}"
+          VERSION="${VERSION#v}"
           ARM_DMG="$(ls dist/*-arm64.dmg)"
           X64_DMG="$(ls dist/*-x64.dmg)"
           ARM_SHA="$(shasum -a 256 "$ARM_DMG" | awk '{print $1}')"
