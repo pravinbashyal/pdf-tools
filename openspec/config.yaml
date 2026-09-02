@@ -1,0 +1,38 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+rules:
+  tasks:
+    - Combine small, related tasks into one larger task instead of splitting them into many tiny checkbox items. Group by coherent unit of work (e.g. "update this file's stale sections" or "wire up this one feature"), not by every individual sub-step or every file touched.
+    - A task should represent a meaningful chunk of work worth its own review round, not a single-sentence edit. If two tasks would touch the same file for the same reason, merge them into one.
+    - Still keep each task's Verify clause concrete, even when the task covers multiple related changes - list all the things to check, not just one.
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

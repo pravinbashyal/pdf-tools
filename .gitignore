@@ -3,7 +3,8 @@ dist/
 *.log
 .DS_Store
 graphify-out/
-.claude/
+.claude/*
+!.claude/agents
 .cursor/
-openspec/
-CLAUDE.md
+openspec/*
+!openspec/config.yaml
