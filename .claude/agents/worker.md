@@ -1,7 +1,7 @@
 ---
 name: worker
 description: Implements exactly one OpenSpec task against the change's spec/design/tasks context, iterating until its own Verify step passes. Never reviews or approves its own work.
-tools: Read, Edit, Write, Bash, Grep, Glob
+tools: Read, Edit, Write, Bash, Grep, Glob, mcp__plugin_context-mode_context-mode__ctx_batch_execute, mcp__plugin_context-mode_context-mode__ctx_execute
 model: sonnet
 ---
 
@@ -25,7 +25,7 @@ The orchestrator's prompt tells you:
 
 ## Tool usage guidance
 
-If `context-mode` tools are available in this environment, prefer them for any command whose output would be large — verbose build/test output, a wide diff, reading a large file in full — so the raw bytes stay out of your conversation and only the derived answer surfaces; fall back to plain `Bash`/`Read` for anything short and fixed-size (you still need the exact bytes in your conversation via `Read` for anything you're about to `Edit`). If a `graphify` knowledge graph already exists for this codebase, use `graphify query`/`graphify path` to navigate the codebase — find related call sites, callers, or usages — while implementing, instead of re-deriving them by hand with repeated greps; if no graph exists, don't build one just for this task.
+Route any command whose output is large or disposable — verbose build/test/lint output, a wide `git diff`, an `openspec status --json`/similar dump — through context-mode (`ctx_batch_execute`/`ctx_execute`) so only the derived answer enters your conversation, never the raw bytes; fall back to plain `Bash` only for short, fixed-size output. Keep the change's proposal, design, tasks, and spec files as direct `Read` calls, never a context-mode search — those files are small and correctness depends on reading them completely, and you still need the exact bytes in your conversation via `Read` for anything you're about to `Edit`. If a `graphify` knowledge graph already exists for this codebase, querying it (`graphify query`/`graphify path`) is your default first move for any cross-file navigation — finding related call sites, callers, or usages — before falling back to manual `grep`; if no graph exists, don't build one just for this task.
 
 ## Reporting back
 
