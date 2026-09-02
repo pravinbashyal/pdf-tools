@@ -1,6 +1,6 @@
 # PDF Tools
 
-Small Electron multi-tool for everyday PDF jobs with Ghostscript (v1.0.0):
+Small Electron multi-tool for everyday PDF jobs with Ghostscript:
 
 1. **Duplex combine** — interleave odd + even ADF scans into one double-sided PDF
 2. **Compress** — shrink a PDF (`/screen`, `/ebook`, `/printer`, `/prepress`)

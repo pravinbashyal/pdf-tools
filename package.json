@@ -8,11 +8,13 @@
     "start": "env -u ELECTRON_RUN_AS_NODE electron .",
     "dev": "env -u ELECTRON_RUN_AS_NODE electron . --enable-logging",
     "pack": "electron-builder --mac dir",
-    "dist": "electron-builder --mac dmg"
+    "dist": "electron-builder --mac dmg",
+    "release": "commit-and-tag-version --skip.tag"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "commit-and-tag-version": "^13.1.2",
     "electron": "^37.2.0",
     "electron-builder": "^26.0.12"
   },
