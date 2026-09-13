@@ -5,8 +5,10 @@ Small Electron multi-tool for everyday PDF jobs with Ghostscript:
 1. **Duplex combine** — interleave odd + even ADF scans into one double-sided PDF
 2. **Compress** — shrink a PDF (`/screen`, `/ebook`, `/printer`, `/prepress`)
 3. **PDF pages arranger** — reorder or remove pages, then export
-4. **Images → PDF** — turn ordered images into a single PDF
-5. **PDF combiner** — merge multiple PDFs into one (reorder before combining)
+4. **Change orientation** — rotate all pages or per page; optional compress
+5. **Reverse page order** — write pages last-to-first; optional compress
+6. **Images → PDF** — turn ordered images into a single PDF
+7. **PDF combiner** — merge multiple PDFs into one (reorder before combining)
 
 ## Requirements
 
@@ -91,6 +93,24 @@ Even page count must equal odd, or be one less (last sheet with no back).
 3. Enter an output filename and folder (must differ from the input file).
 4. Click **Export PDF**.
 
+### Change orientation
+
+1. Choose a PDF.
+2. Pick a mode: **All pages** (one angle for every page) or **Per page** (rotate listed pages only — no reorder or delete).
+3. In **All pages**, choose **90° CW**, **90° CCW**, or **180°**. In **Per page**, set rotation on each page (including leaving some unrotated).
+4. Optionally check **Compress** to apply a quality preset (same as Compress: `screen` / `ebook` / `printer` / `prepress`; default **ebook**). Unchecked skips compression.
+5. Enter an output filename and folder.
+6. Click **Rotate PDF**.
+
+### Reverse page order
+
+1. Choose a PDF.
+2. Optionally check **Compress** to apply a quality preset (same as Compress: `screen` / `ebook` / `printer` / `prepress`; default **ebook**). Unchecked skips compression.
+3. Enter an output filename and folder.
+4. Click **Reverse PDF**.
+
+The output has the same page count, last page first.
+
 ### Images → PDF
 
 1. Choose one or more images (PNG, JPEG, WebP, TIFF, HEIC). Click **Choose images…** again to add more — newly picked images are appended to the list rather than replacing it.
@@ -112,6 +132,8 @@ Even page count must equal odd, or be one less (last sheet with no back).
 - **Duplex:** page counts via Ghostscript, optional reverse of even pages, extract each page, interleave, merge with `pdfwrite`.
 - **Compress:** `gs -sDEVICE=pdfwrite -dPDFSETTINGS=/…`.
 - **Arrange:** extract each kept page in order, then merge with Ghostscript `pdfwrite`.
+- **Orientation:** Ghostscript `pdfwrite` with page Orientation (all-pages angle or per-page map); optional `-dPDFSETTINGS` when Compress is checked.
+- **Reverse:** extract/merge pages last-to-first (same approach as Arrange); optional compress with the same quality presets.
 - **Images → PDF:** prepare images (sips for HEIC/WebP), convert each to a page PDF, merge with Ghostscript.
 - **Merge:** Ghostscript `pdfwrite` with all selected PDFs as inputs.
 

@@ -16,4 +16,4 @@
 
 ## 5. Docs
 
-- [ ] 5.1 Update README (or primary usage docs) to mention Change orientation (both modes) and Reverse page order, including the optional Compress + quality presets. Verify: docs name both tools, both Orientation modes, and the shared compress option.
+- [x] 5.1 Update README (or primary usage docs) to mention Change orientation (both modes) and Reverse page order, including the optional Compress + quality presets. Verify: docs name both tools, both Orientation modes, and the shared compress option.
