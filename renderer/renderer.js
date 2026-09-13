@@ -39,11 +39,19 @@ let arrangeFolder = "";
 /** @type {number[]} 1-based source page numbers in current order */
 let arrangePages = [];
 
+/** @type {string} */
+let orientFile = "";
+/** @type {string} */
+let orientFolder = "";
+/** @type {{ page: number, degrees: number }[]} */
+let orientPages = [];
+
 const modeHints = {
   home: "Choose a tool to get started.",
   duplex: "Select odd and even scan PDFs to interleave.",
   compress: "Select a PDF and a quality preset to compress.",
   arrange: "Open a PDF, reorder or delete pages, then export.",
+  orient: "Select a PDF and a rotation to change orientation.",
   images: "Select images in page order, then create a PDF.",
   merge: "Select two or more PDFs to merge in order.",
 };
@@ -137,6 +145,9 @@ function setBusy(next) {
   document.querySelectorAll(".feature-card, .back-link, #homeBtn").forEach((el) => {
     el.disabled = busy;
   });
+  document.querySelectorAll("#orientList .btn-icon").forEach((el) => {
+    el.disabled = busy;
+  });
   updateActionButtons();
 }
 
@@ -148,6 +159,7 @@ function updateActionButtons() {
   const mergeBtn = document.getElementById("mergeBtn");
   const mergeClear = document.getElementById("mergeClear");
   const arrangeBtn = document.getElementById("arrangeBtn");
+  const orientBtn = document.getElementById("orientBtn");
 
   duplexBtn.disabled =
     busy ||
@@ -189,6 +201,57 @@ function updateActionButtons() {
     arrangePages.length === 0 ||
     !normalizeFilename(document.getElementById("arrangeOutName").value) ||
     !arrangeFolder;
+
+  const orientMode = getOrientMode();
+  const orientReady =
+    orientMode === "all"
+      ? getOrientAngle() != null
+      : orientPages.length > 0;
+  orientBtn.disabled =
+    busy ||
+    !gsOk ||
+    !orientFile ||
+    !orientReady ||
+    !normalizeFilename(document.getElementById("orientOutName").value) ||
+    !orientFolder;
+}
+
+function getOrientMode() {
+  const el = document.querySelector('input[name="orientMode"]:checked');
+  return el && el.value === "page" ? "page" : "all";
+}
+
+function getOrientAngle() {
+  const el = document.querySelector('input[name="orientAngle"]:checked');
+  if (!el) return null;
+  const n = Number(el.value);
+  return n === 90 || n === 180 || n === 270 ? n : null;
+}
+
+function applyOrientModeUi() {
+  const isAll = getOrientMode() === "all";
+  document.getElementById("orientAllPages").hidden = !isAll;
+  document.getElementById("orientPerPage").hidden = isAll;
+}
+
+function applyOrientCompressUi() {
+  const on = document.getElementById("orientCompress").checked;
+  const field = document.getElementById("orientQualityField");
+  const select = document.getElementById("orientQuality");
+  field.hidden = !on;
+  select.disabled = !on;
+}
+
+async function prefillOrientDefaults(file) {
+  const base = basename(file).replace(/\.pdf$/i, "");
+  await prefillOutputDefaults(file, {
+    outDirId: "orientOutDir",
+    outNameId: "orientOutName",
+    defaultBaseName: `${base}-rotated.pdf`,
+    applyFolder: (dir) => {
+      orientFolder = dir;
+    },
+  });
 }
 
 function switchMode(next) {
@@ -802,6 +865,240 @@ document.getElementById("form-arrange").addEventListener("submit", async (event)
     setBusy(false);
   }
 });
+
+// Change orientation
+function renderOrientList() {
+  const list = document.getElementById("orientList");
+  const empty = document.getElementById("orientEmpty");
+  list.innerHTML = "";
+
+  if (orientPages.length === 0) {
+    empty.hidden = false;
+    empty.textContent = "Open a PDF to list its pages.";
+    updateActionButtons();
+    return;
+  }
+
+  empty.hidden = true;
+
+  orientPages.forEach((item, i) => {
+    const li = document.createElement("li");
+
+    const idx = document.createElement("span");
+    idx.className = "idx";
+    idx.textContent = String(item.page);
+
+    const label = document.createElement("span");
+    label.className = "page-label";
+    label.textContent = `Page ${item.page}`;
+
+    const angle = document.createElement("span");
+    angle.className = "page-angle";
+    angle.textContent = `${item.degrees}°`;
+
+    const actions = document.createElement("div");
+    actions.className = "page-actions";
+
+    const ccw = document.createElement("button");
+    ccw.type = "button";
+    ccw.className = "btn-icon";
+    ccw.textContent = "90° CCW";
+    ccw.title = "Rotate 90° counter-clockwise";
+    ccw.disabled = busy;
+    ccw.addEventListener("click", () => stepOrientPage(i, -90));
+
+    const cw = document.createElement("button");
+    cw.type = "button";
+    cw.className = "btn-icon";
+    cw.textContent = "90° CW";
+    cw.title = "Rotate 90° clockwise";
+    cw.disabled = busy;
+    cw.addEventListener("click", () => stepOrientPage(i, 90));
+
+    actions.append(ccw, cw);
+    li.append(idx, label, angle, actions);
+    list.appendChild(li);
+  });
+
+  updateActionButtons();
+}
+
+function stepOrientPage(index, delta) {
+  const item = orientPages[index];
+  item.degrees = (((item.degrees + delta) % 360) + 360) % 360;
+  renderOrientList();
+}
+
+function setOrientPagesFromCount(pageCount) {
+  orientPages = Array.from({ length: pageCount }, (_, i) => ({
+    page: i + 1,
+    degrees: 0,
+  }));
+}
+
+async function inspectOrientFile(file) {
+  const result = await window.duplexApi.inspectPdf(file);
+  if (!result.ok) {
+    return { ok: false, error: result.error || "Could not read PDF." };
+  }
+  return { ok: true, pageCount: result.pageCount };
+}
+
+document.querySelectorAll('input[name="orientMode"]').forEach((el) => {
+  el.addEventListener("change", async () => {
+    applyOrientModeUi();
+    updateActionButtons();
+    if (getOrientMode() !== "page" || !orientFile || orientPages.length > 0) {
+      return;
+    }
+
+    setBusy(true);
+    setStatus("Reading page count…", "busy");
+    try {
+      const result = await inspectOrientFile(orientFile);
+      if (!result.ok) {
+        orientPages = [];
+        renderOrientList();
+        setStatus(result.error, "error");
+        return;
+      }
+      setOrientPagesFromCount(result.pageCount);
+      renderOrientList();
+      setStatus(
+        `Loaded ${result.pageCount} page${result.pageCount === 1 ? "" : "s"}.`,
+        "ok"
+      );
+    } catch (err) {
+      orientPages = [];
+      renderOrientList();
+      setStatus(err instanceof Error ? err.message : String(err), "error");
+    } finally {
+      setBusy(false);
+    }
+  });
+});
+
+document.querySelectorAll('input[name="orientAngle"]').forEach((el) => {
+  el.addEventListener("change", updateActionButtons);
+});
+
+document.getElementById("orientCompress").addEventListener("change", () => {
+  applyOrientCompressUi();
+});
+
+document.getElementById("orientPick").addEventListener("click", async () => {
+  const file = await window.duplexApi.pickPdf();
+  if (!file) return;
+
+  if (getOrientMode() === "page") {
+    setBusy(true);
+    setStatus("Reading page count…", "busy");
+    try {
+      const result = await inspectOrientFile(file);
+      if (!result.ok) {
+        setStatus(result.error, "error");
+        return;
+      }
+
+      orientFile = file;
+      document.getElementById("orientPath").value = file;
+      setOrientPagesFromCount(result.pageCount);
+      await prefillOrientDefaults(file);
+      renderOrientList();
+      setStatus(
+        `Loaded ${result.pageCount} page${result.pageCount === 1 ? "" : "s"}.`,
+        "ok"
+      );
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : String(err), "error");
+    } finally {
+      setBusy(false);
+    }
+    return;
+  }
+
+  orientFile = file;
+  document.getElementById("orientPath").value = file;
+  orientPages = [];
+  renderOrientList();
+  await prefillOrientDefaults(file);
+  updateActionButtons();
+});
+
+document.getElementById("orientFolderPick").addEventListener("click", async () => {
+  const folder = await window.duplexApi.pickFolder();
+  if (!folder) return;
+  orientFolder = folder;
+  document.getElementById("orientOutDir").value = folder;
+  updateActionButtons();
+});
+
+document.getElementById("orientOutName").addEventListener("input", updateActionButtons);
+
+document.getElementById("form-orient").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (busy || !gsOk) return;
+
+  const filename = normalizeFilename(document.getElementById("orientOutName").value);
+  const modeNow = getOrientMode();
+  const angle = getOrientAngle();
+  if (
+    !orientFile ||
+    !filename ||
+    !orientFolder ||
+    (modeNow === "all" && angle == null) ||
+    (modeNow === "page" && orientPages.length === 0)
+  ) {
+    setStatus("Please choose a PDF, a rotation, a filename, and an output folder.", "error");
+    return;
+  }
+
+  const outputPdf = joinPath(orientFolder, filename);
+  /** @type {{ inputPdf: string, outputPdf: string, angle?: number, pageRotations?: Record<string, number>, quality?: string }} */
+  const options = {
+    inputPdf: orientFile,
+    outputPdf,
+  };
+  if (modeNow === "all") {
+    options.angle = angle;
+  } else {
+    const pageRotations = {};
+    orientPages.forEach((item) => {
+      pageRotations[String(item.page)] = item.degrees;
+    });
+    options.pageRotations = pageRotations;
+  }
+  if (document.getElementById("orientCompress").checked) {
+    options.quality = document.getElementById("orientQuality").value;
+  }
+
+  setBusy(true);
+  setStatus("Starting…", "busy");
+
+  try {
+    const result = await window.duplexApi.rotatePages(options);
+
+    if (result.ok) {
+      const qualityNote = result.quality ? ` (${result.quality})` : "";
+      setStatus(
+        `Success: rotated ${result.pageCount} page${result.pageCount === 1 ? "" : "s"}${qualityNote} → ${result.outputPdf}`,
+        "ok"
+      );
+      revealOutput(result.outputPdf);
+      document.getElementById("orientOutName").value = "";
+      await prefillOrientDefaults(orientFile);
+    } else {
+      setStatus(result.error || "Rotate failed.", "error");
+    }
+  } catch (err) {
+    setStatus(err instanceof Error ? err.message : String(err), "error");
+  } finally {
+    setBusy(false);
+  }
+});
+
+applyOrientModeUi();
+applyOrientCompressUi();
 
 const unsubscribeProgress = window.duplexApi.onProgress((message) => {
   if (busy) setStatus(message, "busy");

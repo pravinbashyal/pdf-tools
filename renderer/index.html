@@ -63,6 +63,14 @@
               </button>
             </li>
             <li>
+              <button type="button" class="feature-card" data-open-mode="orient">
+                <span class="feature-card-title">Change orientation</span>
+                <span class="feature-card-desc">
+                  Rotate every page, or set rotation per page, with optional compress.
+                </span>
+              </button>
+            </li>
+            <li>
               <button type="button" class="feature-card" data-open-mode="images">
                 <span class="feature-card-title">Images to PDF</span>
                 <span class="feature-card-desc">
@@ -245,6 +253,107 @@
             </label>
 
             <button type="submit" id="arrangeBtn" class="btn btn-primary">Export PDF</button>
+          </form>
+        </section>
+
+        <section id="panel-orient" class="panel" data-panel="orient" hidden>
+          <header class="panel-header">
+            <button type="button" class="back-link" data-open-mode="home">← All tools</button>
+            <h1 class="panel-title">Change orientation</h1>
+            <p class="panel-desc">
+              Rotate all pages by one angle, or set rotation per page. Optionally compress the output.
+            </p>
+          </header>
+
+          <form id="form-orient" class="form" autocomplete="off">
+            <label class="field">
+              <span class="label">PDF to rotate</span>
+              <div class="file-row">
+                <input type="text" id="orientPath" readonly placeholder="No file selected" />
+                <button type="button" id="orientPick" class="btn btn-secondary">Choose…</button>
+              </div>
+            </label>
+
+            <fieldset class="mode-switch">
+              <legend class="label">Mode</legend>
+              <div class="segmented" role="radiogroup" aria-label="Orientation mode">
+                <label>
+                  <input type="radio" name="orientMode" value="all" checked />
+                  All pages
+                </label>
+                <label>
+                  <input type="radio" name="orientMode" value="page" />
+                  Per page
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="field" id="orientAllPages">
+              <legend class="label">Rotation</legend>
+              <div class="segmented" role="radiogroup" aria-label="Rotation angle">
+                <label>
+                  <input type="radio" name="orientAngle" value="90" checked />
+                  90° CW
+                </label>
+                <label>
+                  <input type="radio" name="orientAngle" value="270" />
+                  90° CCW
+                </label>
+                <label>
+                  <input type="radio" name="orientAngle" value="180" />
+                  180°
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="field" id="orientPerPage" hidden>
+              <span class="label">Pages</span>
+              <span class="hint">Rotate only — page order stays the same.</span>
+              <ul id="orientList" class="page-list" aria-live="polite"></ul>
+              <p id="orientEmpty" class="empty-hint">Open a PDF to list its pages.</p>
+            </div>
+
+            <label class="check-row">
+              <input type="checkbox" id="orientCompress" />
+              <span>
+                <span class="label">Compress</span>
+                <span class="hint">Apply a Ghostscript quality preset to the output</span>
+              </span>
+            </label>
+
+            <label class="field" id="orientQualityField" hidden>
+              <span class="label">Quality</span>
+              <span class="hint">Lower quality → smaller file</span>
+              <select id="orientQuality" class="select" disabled>
+                <option value="screen">Screen — smallest (72 dpi)</option>
+                <option value="ebook" selected>Ebook — balanced (default)</option>
+                <option value="printer">Printer — higher quality</option>
+                <option value="prepress">Prepress — highest quality</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="label">Output filename</span>
+              <input
+                type="text"
+                id="orientOutName"
+                placeholder="rotated.pdf"
+                required
+                spellcheck="false"
+              />
+            </label>
+
+            <label class="field">
+              <span class="label">Save to folder</span>
+              <div class="file-row">
+                <input type="text" id="orientOutDir" readonly placeholder="Choose a folder…" />
+                <button type="button" id="orientFolderPick" class="btn btn-secondary">
+                  Choose…
+                </button>
+              </div>
+            </label>
+
+            <button type="submit" id="orientBtn" class="btn btn-primary">Rotate PDF</button>
           </form>
         </section>
 

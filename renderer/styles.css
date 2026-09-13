@@ -262,6 +262,74 @@ body {
   gap: 6px;
 }
 
+.field[hidden] {
+  display: none;
+}
+
+fieldset.field,
+fieldset.mode-switch {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+.mode-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field > legend.label,
+.mode-switch > legend.label {
+  padding: 0;
+  float: none;
+  width: 100%;
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fffdf8;
+}
+
+.segmented label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-right: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.segmented label:last-child {
+  border-right: none;
+}
+
+.segmented input {
+  margin: 0;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.segmented label:has(input:checked) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .label {
   font-size: 0.82rem;
   font-weight: 600;
@@ -405,6 +473,14 @@ input[readonly] {
   min-width: 0;
   color: var(--ink);
   font-weight: 500;
+}
+
+.page-list .page-angle {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  min-width: 3em;
+  text-align: right;
 }
 
 .page-list .page-actions,

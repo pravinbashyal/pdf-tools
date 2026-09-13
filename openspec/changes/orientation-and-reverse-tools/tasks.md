@@ -8,7 +8,7 @@
 
 ## 3. Orientation UI (dual mode + compress)
 
-- [ ] 3.1 Add the Change orientation home card and panel in `index.html` / `styles.css` / `renderer.js`: mode switch (default all-pages), all-pages angle control (90° CW / 90° CCW / 180°), per-page rotate-only list after pick (no Up/Down/Delete), Compress checkbox + quality dropdown (hidden/disabled until checked; default ebook), output defaults (`-rotated.pdf` + folder via existing suggest helpers), busy/disable rules, Show in Finder on success. Verify: `npm start`; open Orientation; confirm default mode; run all-pages rotate; switch to per-page, set mixed rotations, confirm no reorder/delete controls; toggle Compress and confirm quality appears only when checked and ebook is default; confirm blank fields get defaults and Show in Finder works after success.
+- [x] 3.1 Add the Change orientation home card and panel in `index.html` / `styles.css` / `renderer.js`: mode switch (default all-pages), all-pages angle control (90° CW / 90° CCW / 180°), per-page rotate-only list after pick (no Up/Down/Delete), Compress checkbox + quality dropdown (hidden/disabled until checked; default ebook), output defaults (`-rotated.pdf` + folder via existing suggest helpers), busy/disable rules, Show in Finder on success. Verify: `npm start`; open Orientation; confirm default mode; run all-pages rotate; switch to per-page, set mixed rotations, confirm no reorder/delete controls; toggle Compress and confirm quality appears only when checked and ebook is default; confirm blank fields get defaults and Show in Finder works after success.
 
 ## 4. Reverse UI + compress
 
