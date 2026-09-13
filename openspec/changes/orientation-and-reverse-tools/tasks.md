@@ -12,7 +12,7 @@
 
 ## 4. Reverse UI + compress
 
-- [ ] 4.1 Add the Reverse page order home card and panel with file pick, Compress checkbox + quality dropdown (same behavior as Orientation), output defaults (`-reversed.pdf`), run wiring to `reverse:run`, and Show in Finder on success. Verify: `npm start`; reverse a multi-page PDF and confirm page order; confirm Compress checkbox/quality behavior matches Orientation; confirm defaults and Finder reveal.
+- [x] 4.1 Add the Reverse page order home card and panel with file pick, Compress checkbox + quality dropdown (same behavior as Orientation), output defaults (`-reversed.pdf`), run wiring to `reverse:run`, and Show in Finder on success. Verify: `npm start`; reverse a multi-page PDF and confirm page order; confirm Compress checkbox/quality behavior matches Orientation; confirm defaults and Finder reveal.
 
 ## 5. Docs
 

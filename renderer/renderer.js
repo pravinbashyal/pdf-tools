@@ -46,12 +46,18 @@ let orientFolder = "";
 /** @type {{ page: number, degrees: number }[]} */
 let orientPages = [];
 
+/** @type {string} */
+let reverseFile = "";
+/** @type {string} */
+let reverseFolder = "";
+
 const modeHints = {
   home: "Choose a tool to get started.",
   duplex: "Select odd and even scan PDFs to interleave.",
   compress: "Select a PDF and a quality preset to compress.",
   arrange: "Open a PDF, reorder or delete pages, then export.",
   orient: "Select a PDF and a rotation to change orientation.",
+  reverse: "Select a PDF to reverse its page order.",
   images: "Select images in page order, then create a PDF.",
   merge: "Select two or more PDFs to merge in order.",
 };
@@ -160,6 +166,7 @@ function updateActionButtons() {
   const mergeClear = document.getElementById("mergeClear");
   const arrangeBtn = document.getElementById("arrangeBtn");
   const orientBtn = document.getElementById("orientBtn");
+  const reverseBtn = document.getElementById("reverseBtn");
 
   duplexBtn.disabled =
     busy ||
@@ -214,6 +221,13 @@ function updateActionButtons() {
     !orientReady ||
     !normalizeFilename(document.getElementById("orientOutName").value) ||
     !orientFolder;
+
+  reverseBtn.disabled =
+    busy ||
+    !gsOk ||
+    !reverseFile ||
+    !normalizeFilename(document.getElementById("reverseOutName").value) ||
+    !reverseFolder;
 }
 
 function getOrientMode() {
@@ -250,6 +264,26 @@ async function prefillOrientDefaults(file) {
     defaultBaseName: `${base}-rotated.pdf`,
     applyFolder: (dir) => {
       orientFolder = dir;
+    },
+  });
+}
+
+function applyReverseCompressUi() {
+  const on = document.getElementById("reverseCompress").checked;
+  const field = document.getElementById("reverseQualityField");
+  const select = document.getElementById("reverseQuality");
+  field.hidden = !on;
+  select.disabled = !on;
+}
+
+async function prefillReverseDefaults(file) {
+  const base = basename(file).replace(/\.pdf$/i, "");
+  await prefillOutputDefaults(file, {
+    outDirId: "reverseOutDir",
+    outNameId: "reverseOutName",
+    defaultBaseName: `${base}-reversed.pdf`,
+    applyFolder: (dir) => {
+      reverseFolder = dir;
     },
   });
 }
@@ -1097,8 +1131,78 @@ document.getElementById("form-orient").addEventListener("submit", async (event) 
   }
 });
 
+// Reverse page order
+document.getElementById("reverseCompress").addEventListener("change", () => {
+  applyReverseCompressUi();
+});
+
+document.getElementById("reversePick").addEventListener("click", async () => {
+  const file = await window.duplexApi.pickPdf();
+  if (!file) return;
+  reverseFile = file;
+  document.getElementById("reversePath").value = file;
+  await prefillReverseDefaults(file);
+  updateActionButtons();
+});
+
+document.getElementById("reverseFolderPick").addEventListener("click", async () => {
+  const folder = await window.duplexApi.pickFolder();
+  if (!folder) return;
+  reverseFolder = folder;
+  document.getElementById("reverseOutDir").value = folder;
+  updateActionButtons();
+});
+
+document.getElementById("reverseOutName").addEventListener("input", updateActionButtons);
+
+document.getElementById("form-reverse").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (busy || !gsOk) return;
+
+  const filename = normalizeFilename(document.getElementById("reverseOutName").value);
+  if (!reverseFile || !filename || !reverseFolder) {
+    setStatus("Please choose a PDF, a filename, and an output folder.", "error");
+    return;
+  }
+
+  const outputPdf = joinPath(reverseFolder, filename);
+  /** @type {{ inputPdf: string, outputPdf: string, quality?: string }} */
+  const options = {
+    inputPdf: reverseFile,
+    outputPdf,
+  };
+  if (document.getElementById("reverseCompress").checked) {
+    options.quality = document.getElementById("reverseQuality").value;
+  }
+
+  setBusy(true);
+  setStatus("Starting…", "busy");
+
+  try {
+    const result = await window.duplexApi.reversePages(options);
+
+    if (result.ok) {
+      const qualityNote = result.quality ? ` (${result.quality})` : "";
+      setStatus(
+        `Success: reversed ${result.pageCount} page${result.pageCount === 1 ? "" : "s"}${qualityNote} → ${result.outputPdf}`,
+        "ok"
+      );
+      revealOutput(result.outputPdf);
+      document.getElementById("reverseOutName").value = "";
+      await prefillReverseDefaults(reverseFile);
+    } else {
+      setStatus(result.error || "Reverse failed.", "error");
+    }
+  } catch (err) {
+    setStatus(err instanceof Error ? err.message : String(err), "error");
+  } finally {
+    setBusy(false);
+  }
+});
+
 applyOrientModeUi();
 applyOrientCompressUi();
+applyReverseCompressUi();
 
 const unsubscribeProgress = window.duplexApi.onProgress((message) => {
   if (busy) setStatus(message, "busy");

@@ -71,6 +71,14 @@
               </button>
             </li>
             <li>
+              <button type="button" class="feature-card" data-open-mode="reverse">
+                <span class="feature-card-title">Reverse page order</span>
+                <span class="feature-card-desc">
+                  Write pages last-to-first, with optional compress.
+                </span>
+              </button>
+            </li>
+            <li>
               <button type="button" class="feature-card" data-open-mode="images">
                 <span class="feature-card-title">Images to PDF</span>
                 <span class="feature-card-desc">
@@ -354,6 +362,68 @@
             </label>
 
             <button type="submit" id="orientBtn" class="btn btn-primary">Rotate PDF</button>
+          </form>
+        </section>
+
+        <section id="panel-reverse" class="panel" data-panel="reverse" hidden>
+          <header class="panel-header">
+            <button type="button" class="back-link" data-open-mode="home">← All tools</button>
+            <h1 class="panel-title">Reverse page order</h1>
+            <p class="panel-desc">
+              Write the pages of a PDF in reverse order. Optionally compress the output.
+            </p>
+          </header>
+
+          <form id="form-reverse" class="form" autocomplete="off">
+            <label class="field">
+              <span class="label">PDF to reverse</span>
+              <div class="file-row">
+                <input type="text" id="reversePath" readonly placeholder="No file selected" />
+                <button type="button" id="reversePick" class="btn btn-secondary">Choose…</button>
+              </div>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" id="reverseCompress" />
+              <span>
+                <span class="label">Compress</span>
+                <span class="hint">Apply a Ghostscript quality preset to the output</span>
+              </span>
+            </label>
+
+            <label class="field" id="reverseQualityField" hidden>
+              <span class="label">Quality</span>
+              <span class="hint">Lower quality → smaller file</span>
+              <select id="reverseQuality" class="select" disabled>
+                <option value="screen">Screen — smallest (72 dpi)</option>
+                <option value="ebook" selected>Ebook — balanced (default)</option>
+                <option value="printer">Printer — higher quality</option>
+                <option value="prepress">Prepress — highest quality</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="label">Output filename</span>
+              <input
+                type="text"
+                id="reverseOutName"
+                placeholder="reversed.pdf"
+                required
+                spellcheck="false"
+              />
+            </label>
+
+            <label class="field">
+              <span class="label">Save to folder</span>
+              <div class="file-row">
+                <input type="text" id="reverseOutDir" readonly placeholder="Choose a folder…" />
+                <button type="button" id="reverseFolderPick" class="btn btn-secondary">
+                  Choose…
+                </button>
+              </div>
+            </label>
+
+            <button type="submit" id="reverseBtn" class="btn btn-primary">Reverse PDF</button>
           </form>
         </section>
 
