@@ -4,7 +4,7 @@
 
 ## 2. Main / preload IPC
 
-- [ ] 2.1 Wire `rotate:run` (and inspect reuse or `rotate:inspect` if needed) plus `reverse:run` in `main.js`, progress events consistent with other tools, and expose them on `preload.js` / `duplexApi`. Verify: from renderer DevTools (or a small harness), the new API methods are callable; a dry call with a missing input path returns a clear error without crashing main.
+- [x] 2.1 Wire `rotate:run` (and inspect reuse or `rotate:inspect` if needed) plus `reverse:run` in `main.js`, progress events consistent with other tools, and expose them on `preload.js` / `duplexApi`. Verify: from renderer DevTools (or a small harness), the new API methods are callable; a dry call with a missing input path returns a clear error without crashing main.
 
 ## 3. Orientation UI (dual mode + compress)
 

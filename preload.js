@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld("duplexApi", {
   mergePdfs: (options) => ipcRenderer.invoke("merge:run", options),
   inspectPdf: (pdfPath) => ipcRenderer.invoke("arrange:inspect", pdfPath),
   arrangePages: (options) => ipcRenderer.invoke("arrange:run", options),
+  rotatePages: (options) => ipcRenderer.invoke("rotate:run", options),
+  reversePages: (options) => ipcRenderer.invoke("reverse:run", options),
   showItemInFolder: (filePath) => ipcRenderer.invoke("shell:showItem", filePath),
   suggestOutputName: (options) => ipcRenderer.invoke("output:suggestName", options),
   onProgress: (callback) => {

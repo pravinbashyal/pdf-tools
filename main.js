@@ -5,6 +5,8 @@ const { compressPdf } = require("./lib/compress");
 const { imagesToPdf } = require("./lib/imagesToPdf");
 const { mergePdfs } = require("./lib/mergePdfs");
 const { inspectPdf, arrangePages } = require("./lib/arrangePages");
+const { rotatePages } = require("./lib/rotatePages");
+const { reversePages } = require("./lib/reversePages");
 const { suggestOutputName } = require("./lib/suggestOutputName");
 
 /** @type {BrowserWindow | null} */
@@ -207,6 +209,42 @@ ipcMain.handle("arrange:run", async (event, options) => {
       inputPdf: options.inputPdf,
       pageOrder: options.pageOrder || [],
       outputPdf: options.outputPdf,
+      onProgress: (message) => sendProgress(event, message),
+    });
+    return { ok: true, ...result };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+});
+
+ipcMain.handle("rotate:run", async (event, options) => {
+  try {
+    const result = await rotatePages({
+      inputPdf: options.inputPdf,
+      outputPdf: options.outputPdf,
+      angle: options.angle,
+      pageRotations: options.pageRotations,
+      quality: options.quality,
+      onProgress: (message) => sendProgress(event, message),
+    });
+    return { ok: true, ...result };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+});
+
+ipcMain.handle("reverse:run", async (event, options) => {
+  try {
+    const result = await reversePages({
+      inputPdf: options.inputPdf,
+      outputPdf: options.outputPdf,
+      quality: options.quality,
       onProgress: (message) => sendProgress(event, message),
     });
     return { ok: true, ...result };
